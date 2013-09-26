@@ -22,13 +22,14 @@ using System.Net;
 using System.IO;
 using System.Threading;
 using Xamarin.Auth;
-using MonoTouch.UIKit;
-using MonoTouch.Foundation;
 
 #if PLATFORM_IOS
 using ShareUIType = MonoTouch.UIKit.UIViewController;
 using AuthenticateUIType = MonoTouch.UIKit.UIViewController;
+using MonoTouch.UIKit;
+using MonoTouch.Foundation;
 #elif PLATFORM_ANDROID
+using Android.App;
 using ShareUIType = Android.Content.Intent;
 using AuthenticateUIType = Android.Content.Intent;
 using UIContext = Android.App.Activity;
@@ -98,7 +99,7 @@ namespace Xamarin.Social
 
 #if PLATFORM_ANDROID
 		/// <summary>
-		/// Gets the saved accounts associated with this service.
+		/// Asynchronously retrieves the saved accounts associated with this service.
 		/// </summary>
 		public virtual Task<IEnumerable<Account>> GetAccountsAsync (UIContext context)
 		{
@@ -108,7 +109,7 @@ namespace Xamarin.Social
 		}
 #else
 		/// <summary>
-		/// Gets the saved accounts associated with this service.
+		/// Asynchronously retrieves the saved accounts associated with this service.
 		/// </summary>
 		public virtual Task<IEnumerable<Account>> GetAccountsAsync ()
 		{
@@ -147,11 +148,13 @@ namespace Xamarin.Social
 
 #if PLATFORM_ANDROID
 		/// <summary>
-		/// Presents the necessary UI for the user to sign in to their account.
+		/// Gets the necessary UI for the user to sign in to their account.
 		/// </summary>
 		/// <returns>
-		/// The task that will complete when they have signed in.
+		/// A platform-specific UI type for the user to present.
 		/// </returns>
+		/// <param name="context">The context for the UI.</param>
+		/// <param name="completedHandler">A callback for when authentication has completed successfuly.</param>
 		public AuthenticateUIType GetAuthenticateUI (UIContext context, Action<Account> completedHandler)
 		{
 			if (context == null) {
@@ -172,49 +175,14 @@ namespace Xamarin.Social
 			auth.Title = Title;
 			return auth.GetUI (context);
 		}
-
-		/// <summary>
-		/// Attempts to authenticate user with this service using the system web browser.
-		/// </summary>
-		/// <param name="customUrlHandler">
-		/// A handler that will open a URL in system browser, register a custom
-		/// callback URL handler and wait for the app to go foreground.
-		/// </param>
-		/// <returns>
-		/// The task that will complete when they have signed in.
-		/// </returns>
-		public virtual Task<IEnumerable<Account>> GetAccountsAsync (ICustomUrlHandler customUrlHandler, UIContext context)
-		{
-			if (customUrlHandler == null)
-				throw new ArgumentNullException ("customUrlHandler",
-					"This overload needs a handler to launch system browser and wait for redirect. " +
-					"You will need to supply your own implementation of ICustomUrlHandler.");
-
-			var tcs = new TaskCompletionSource<IEnumerable<Account>> ();
-
-			var authenticator = GetAuthenticator () as WebAuthenticator;
-			if (authenticator == null)
-				throw new NotSupportedException ("This service does not support authentication via web browser.");
-
-			authenticator.Completed += (sender, e) => {
-				if (e.IsAuthenticated) {
-					SaveAccount (e.Account, context);
-					tcs.TrySetResult (new [] { e.Account });
-				} else {
-					tcs.TrySetCanceled ();
-				}
-			};
-
-			authenticator.AuthenticateWithBrowser (customUrlHandler);
-			return tcs.Task;
-		}
 #else
 		/// <summary>
-		/// Presents the necessary UI for the user to sign in to their account.
+		/// Gets the necessary UI for the user to sign in to their account.
 		/// </summary>
 		/// <returns>
-		/// The task that will complete when they have signed in.
+		/// A platform-specific UI type for the user to present.
 		/// </returns>
+		/// <param name="completedHandler">A callback for when authentication has completed successfuly.</param>
 		public AuthenticateUIType GetAuthenticateUI (Action<Account> completedHandler)
 		{
 			var auth = GetAuthenticator ();
@@ -234,7 +202,7 @@ namespace Xamarin.Social
 		}
 
 		/// <summary>
-		/// Attempts to authenticate user with this service using the system web browser.
+		/// Opens the system web browser for the user to sign in to their account.
 		/// </summary>
 		/// <param name="customUrlHandler">
 		/// A handler that will open a URL in system browser, register a custom
@@ -244,9 +212,9 @@ namespace Xamarin.Social
 		/// <c>WillEnterForeground</c> and <c>HandleOpenUrl</c> methods from your <c>AppDelegate</c>.
 		/// </param>
 		/// <returns>
-		/// The task that will complete when they have signed in.
+		/// A task for when authentication has completed.
 		/// </returns>
-		public virtual Task<IEnumerable<Account>> GetAccountsAsync (ICustomUrlHandler customUrlHandler)
+		public virtual Task<IEnumerable<Account>> GetAccountsWithBrowserAsync (ICustomUrlHandler customUrlHandler)
 		{
 			if (customUrlHandler == null)
 				throw new ArgumentNullException ("customUrlHandler",
@@ -277,7 +245,16 @@ namespace Xamarin.Social
 			return tcs.Task;
 		}
 
-		public virtual Task<IEnumerable<Account>> GetAccountsAsync (Action<UIViewController, bool, NSAction> presentAuthController)
+#endif
+
+#if PLATFORM_IOS
+		/// <summary>
+		/// Presents the necessary UI for the user to sign in to their account.
+		/// </summary>
+		/// <returns>
+		/// A task for when authentication has completed.
+		/// </returns>
+		public virtual Task<IEnumerable<Account>> GetAccountsWithAuthUIAsync (Action<UIViewController, bool, NSAction> presentAuthController)
 		{
 			if (presentAuthController == null)
 				throw new ArgumentNullException ("presentAuthController", "This overload needs a function to present authentication controller.");
@@ -308,6 +285,39 @@ namespace Xamarin.Social
 			authController = authenticator.GetUI ();
 			authController.ModalPresentationStyle = UIModalPresentationStyle.FormSheet;
 			presentAuthController (authController, true, () => {});
+
+			return tcs.Task;
+		}
+#elif PLATFORM_ANDROID
+		/// <summary>
+		/// Presents the necessary UI for the user to sign in to their account.
+		/// </summary>
+		/// <returns>
+		/// A task for when authentication has completed.
+		/// </returns>
+		public virtual Task<IEnumerable<Account>> GetAccountsWithAuthUIAsync (UIContext context)
+		{
+			var tcs = new TaskCompletionSource<IEnumerable<Account>> ();
+
+			var authenticator = GetEmbeddedAuthenticator ();
+			if (authenticator == null)
+				throw new NotSupportedException ("This service does not support authentication via a controller.");
+
+			authenticator.Error += (sender, e) => {
+				tcs.TrySetException (e.Exception ?? new SocialException (e.Message));
+			};
+
+			authenticator.Completed += (sender, e) => {
+				if (e.IsAuthenticated) {
+					SaveAccount (e.Account);
+					tcs.TrySetResult (new [] { e.Account });
+				} else {
+					tcs.TrySetCanceled ();
+				}
+			};
+
+			var authenticatorUi = authenticator.GetUI (context);
+			context.StartActivity (authenticatorUi);
 
 			return tcs.Task;
 		}
@@ -387,17 +397,17 @@ namespace Xamarin.Social
 		/// <summary>
 		/// Saves an account and associates it with this service.
 		/// </summary>
-		public virtual void SaveAccount (Account account, UIContext context)
+		public virtual void SaveAccount (Account account)
 		{
-			AccountStore.Create (context).Save (account, ServiceId);
+			AccountStore.Create (Application.Context).Save (account, ServiceId);
 		}
 
 		/// <summary>
 		/// Deletes a previously saved account associated with this service.
 		/// </summary>
-		public virtual void DeleteAccount (Account account, UIContext context)
+		public virtual void DeleteAccount (Account account)
 		{
-			AccountStore.Create (context).Delete (account, ServiceId);
+			AccountStore.Create (Application.Context).Delete (account, ServiceId);
 		}
 #else
 		/// <summary>

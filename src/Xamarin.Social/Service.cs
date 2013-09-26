@@ -33,6 +33,7 @@ using Android.App;
 using ShareUIType = Android.Content.Intent;
 using AuthenticateUIType = Android.Content.Intent;
 using UIContext = Android.App.Activity;
+using AppContext = Android.Content.Context;
 #else
 using ShareUIType = System.Object;
 using AuthenticateUIType = System.Object;
@@ -309,7 +310,7 @@ namespace Xamarin.Social
 
 			authenticator.Completed += (sender, e) => {
 				if (e.IsAuthenticated) {
-					SaveAccount (e.Account);
+					SaveAccount (e.Account, context);
 					tcs.TrySetResult (new [] { e.Account });
 				} else {
 					tcs.TrySetCanceled ();
@@ -397,17 +398,17 @@ namespace Xamarin.Social
 		/// <summary>
 		/// Saves an account and associates it with this service.
 		/// </summary>
-		public virtual void SaveAccount (Account account)
+		public virtual void SaveAccount (Account account, AppContext context)
 		{
-			AccountStore.Create (Application.Context).Save (account, ServiceId);
+			AccountStore.Create (context).Save (account, ServiceId);
 		}
 
 		/// <summary>
 		/// Deletes a previously saved account associated with this service.
 		/// </summary>
-		public virtual void DeleteAccount (Account account)
+		public virtual void DeleteAccount (Account account, AppContext context)
 		{
-			AccountStore.Create (Application.Context).Delete (account, ServiceId);
+			AccountStore.Create (context).Delete (account, ServiceId);
 		}
 #else
 		/// <summary>

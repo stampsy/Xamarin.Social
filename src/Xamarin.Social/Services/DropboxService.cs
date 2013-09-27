@@ -13,7 +13,7 @@ namespace Xamarin.Social.Services
 		public DropboxService ()
 			: base ("Dropbox", "Dropbox")
 		{
-			CreateAccountLink = new Uri ("http://www.flickr.com");
+			CreateAccountLink = new Uri ("http://www.dropbox.com");
 
 			ShareTitle = "Upload";
 
@@ -53,8 +53,8 @@ namespace Xamarin.Social.Services
 		protected override Task<string> GetUsernameAsync (IDictionary<string, string> accountProperties)
 		{
 			var request = base.CreateRequest ("GET",
-			                                  new Uri ("https://api.dropbox.com/1/account/info"),
-			new Account (string.Empty, accountProperties));
+				new Uri ("https://api.dropbox.com/1/account/info"),
+				new Account (string.Empty, accountProperties));
 
 			return request.GetResponseAsync ().ContinueWith (reqTask => {
 				var responseText = reqTask.Result.GetResponseText ();

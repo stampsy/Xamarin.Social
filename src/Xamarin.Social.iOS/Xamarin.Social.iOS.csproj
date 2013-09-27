@@ -108,10 +108,14 @@
     <Compile Include="..\Xamarin.Social\Services\GoogleService.cs">
       <Link>Services\GoogleService.cs</Link>
     </Compile>
-    <Compile Include="Services\DropboxService.cs" />
-    <Compile Include="OAuth1PreAService.cs" />
     <Compile Include="..\Xamarin.Social\IOSService.cs">
       <Link>IOSService.cs</Link>
+    </Compile>
+    <Compile Include="..\Xamarin.Social\Services\DropboxService.cs">
+      <Link>Services\DropboxService.cs</Link>
+    </Compile>
+    <Compile Include="..\Xamarin.Social\OAuth1PreAService.cs">
+      <Link>OAuth1PreAService.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

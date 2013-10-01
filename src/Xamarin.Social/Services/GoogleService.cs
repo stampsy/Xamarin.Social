@@ -20,7 +20,7 @@ namespace Xamarin.Social.Services
 		public override string [] Scopes {
 			set {
 				Scope = (value != null)
-					? string.Join ("+", value)
+					? string.Join (" ", value)
 					: null;
 			}
 		}

@@ -12,8 +12,8 @@ namespace Xamarin.Social.Services
 		public DisqusService()
 			: base("Disqus", "Disqus")
 		{
-			AuthorizeUrl = new Uri("https://disqus.com/api/oauth/2.0/authorize");
-			AccessTokenUrl = new Uri("https://disqus.com/api/oauth/2.0/access_token");
+			AuthorizeUrl = new Uri("https://disqus.com/api/oauth/2.0/authorize/");
+			AccessTokenUrl = new Uri("https://disqus.com/api/oauth/2.0/access_token/");
 			Scope = "read,write";
 		}
 

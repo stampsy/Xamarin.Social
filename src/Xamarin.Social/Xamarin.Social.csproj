@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -47,6 +47,7 @@
     <Compile Include="Service.cs" />
     <Compile Include="ISupportScope.cs" />
     <Compile Include="Item.cs" />
+    <Compile Include="Services\DisqusService.cs" />
     <Compile Include="ShareResult.cs" />
     <Compile Include="ImageData.cs" />
     <Compile Include="FileData.cs" />
@@ -65,9 +66,7 @@
     <Compile Include="OAuth1PreAService.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <Folder Include="Services\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\..\Xamarin.Auth\src\Xamarin.Auth\Xamarin.Auth.csproj">
       <Project>{C9FF1919-78DD-4084-976D-BDABC0A7E80B}</Project>

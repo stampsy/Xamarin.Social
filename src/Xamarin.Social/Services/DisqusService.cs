@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Xamarin.Auth;
-using Xamarin.Utilities;
 
 namespace Xamarin.Social.Services
 {
@@ -19,20 +19,29 @@ namespace Xamarin.Social.Services
 
 		protected override Task<string> GetUsernameAsync (IDictionary<string, string> accountProperties)
 		{
-			var request = base.CreateRequest ("GET",
+			var request = CreateRequest ("GET",
 				new Uri("https://disqus.com/api/3.0/users/details.json"),
-				null,
 				new Account (string.Empty, accountProperties));
 
 			return request.GetResponseAsync ().ContinueWith (reqTask => {
 				var responseText = reqTask.Result.GetResponseText ();
-				return WebEx.GetValueFromJson (responseText, "id");
+				var json = JsonValue.Parse (responseText);
+				var response = json ["response"];
+				string id = response ["id"];
+				return id;
 			});
 		}
 
 		protected override Authenticator GetAuthenticator ()
 		{
 			return new DisqusAuthenticator(ClientId, ClientSecret, Scope, AuthorizeUrl, RedirectUrl, AccessTokenUrl, GetUsernameAsync);
+		}
+
+		public override Request CreateRequest (string method, Uri url, IDictionary<string, string> parameters, Account account) {
+			return new DisqusRequest (method, url, parameters, account) {
+				Account = account,
+				ClientId = ClientId
+			};
 		}
 
 		public override Task<Account> ReauthorizeAsync (Account account)
@@ -88,6 +97,23 @@ namespace Xamarin.Social.Services
 			{
 				this.clientId = clientId;
 				this.clientSecret = clientSecret;
+			}
+		}
+
+		class DisqusRequest : OAuth2Request {
+			
+			public string ClientId { get; set; }
+
+			public DisqusRequest (string method, Uri url, IDictionary<string, string> parameters, Account account) 
+				: base (method, url, parameters, account)
+			{
+			}
+
+			protected override Uri GetPreparedUrl ()
+			{
+				var url = GetAuthenticatedUrl (Account, base.GetPreparedUrl (), AccessTokenParameterName).AbsoluteUri;
+				url += "&api_key=" + ClientId;
+				return new Uri (url);
 			}
 		}
 	}

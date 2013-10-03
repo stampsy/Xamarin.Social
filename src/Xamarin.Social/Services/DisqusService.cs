@@ -98,6 +98,11 @@ namespace Xamarin.Social.Services
 				this.clientId = clientId;
 				this.clientSecret = clientSecret;
 			}
+
+		    public override void OnPageLoaded (Uri url)
+		    {
+
+		    }
 		}
 
 		class DisqusRequest : OAuth2Request {

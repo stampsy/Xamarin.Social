@@ -115,7 +115,7 @@ namespace Xamarin.Social.Services
 
 			protected override Uri GetPreparedUrl ()
 			{
-				var url = GetAuthenticatedUrl (Account, base.GetPreparedUrl (), AccessTokenParameterName).AbsoluteUri;
+				var url = base.GetPreparedUrl ().AbsoluteUri;
 				url += "&api_key=" + ClientId;
 				return new Uri (url);
 			}

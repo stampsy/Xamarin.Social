@@ -49,12 +49,11 @@ namespace Xamarin.Social.Services
 
 			return request.GetResponseAsync ().ContinueWith (reqTask => {
 				var json = reqTask.Result.GetResponseText ();
-				var username = GetValueFromJson (json, "username");
-				if (string.IsNullOrEmpty (username)) {
-					throw new Exception ("Could not read username from the /me API call");
-				}
-				else {
-					return username;
+				var id = GetValueFromJson (json, "id");
+				if (string.IsNullOrEmpty (id)) {
+					throw new Exception ("Could not read id from the /me API call");
+				} else {
+					return id;
 				}
 			});
 		}

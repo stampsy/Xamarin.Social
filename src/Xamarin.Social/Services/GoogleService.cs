@@ -19,13 +19,8 @@ namespace Xamarin.Social.Services
 
 		public override string [] Scopes {
 			set {
-
-				// Although Google docs claim scopes need to be separated by spaces,
-				// in fact Google expects them to be separated by %2B (and not %20) after 
-				// encoding the URL. Therefore we use plus symbol.
-
 				Scope = (value != null)
-					? string.Join ("+", value)
+					? string.Join (" ", value)
 					: null;
 			}
 		}

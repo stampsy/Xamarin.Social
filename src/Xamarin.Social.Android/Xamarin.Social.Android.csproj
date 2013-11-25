@@ -56,6 +56,9 @@
     <Compile Include="..\Xamarin.Social\ISupportScope.cs">
       <Link>ISupportScope.cs</Link>
     </Compile>
+    <Compile Include="..\Xamarin.Social\Services\DisqusService.cs">
+      <Link>Services\DisqusService.cs</Link>
+    </Compile>
     <Compile Include="..\Xamarin.Social\ShareResult.cs">
       <Link>ShareResult.cs</Link>
     </Compile>
@@ -107,9 +110,7 @@
       <Link>OAuth1PreAService.cs</Link>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Services\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\..\Xamarin.Auth\src\Xamarin.Auth.Android\Xamarin.Auth.Android.csproj">
       <Project>{FCF02C8C-6DD3-4C59-A8A2-58BC01A4BB21}</Project>
